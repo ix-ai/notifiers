@@ -1,0 +1,27 @@
+image: python:latest
+
+stages:
+  - test
+  - deploy
+
+before_script:
+  - sh -c ./build.sh
+  - pip3 install twine
+  - python3 setup.py sdist
+
+deploy:testing:
+  stage: test
+  variables:
+    TWINE_USERNAME: $TEST_PIPY_USERNAME
+    TWINE_PASSWORD: $TEST_PIPY_PASSWORD
+  script:
+    - twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+deploy:production:
+  stage: deploy
+  variables:
+    TWINE_USERNAME: $PIPY_USERNAME
+    TWINE_PASSWORD: $PIPY_PASSWORD
+  script:
+    - twine upload dist/*
+  when: manual

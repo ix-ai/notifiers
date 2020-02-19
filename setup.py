@@ -1,0 +1,33 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import setuptools
+from ix_notifiers import constants
+
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
+with open('LICENSE', 'r') as fh:
+    package_license = fh.read()
+
+setuptools.setup(
+    name="ix-notifiers",
+    version=f"{constants.VERSION}.{constants.BUILD}",
+    author="ix.ai",
+    author_email="docker@ix.ai",
+    description="A python library for notifiers",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    license=package_license,
+    url="https://gitlab.com/ix.ai/notifiers",
+    packages=setuptools.find_packages(),
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
+    python_requires='>=3.6',
+    install_requires=[
+        'python-telegram-bot>=12.2',
+        'requests>=2.22',
+    ],
+)
