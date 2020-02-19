@@ -25,7 +25,11 @@ class IxNotifiers():
         for n in self.notifiers:
             if n == notifier:
                 instance = importlib.import_module(f'ix_notifiers.{notifier}_notifier')
-                self.registered.update({notifier: instance.start(**kwargs)})
+                # Strips the prefix from kwargs, if set
+                settings = {}
+                for k, v in kwargs.items():
+                    settings.update({k.replace(f'{notifier}_', ''): v})
+                self.registered.update({notifier: instance.start(**settings)})
                 log.debug(f'Registered {notifier}')
 
     def notify(self, **kwargs):
