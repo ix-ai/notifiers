@@ -6,9 +6,6 @@ from ix_notifiers import constants
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-with open('LICENSE', 'r') as fh:
-    package_license = fh.read()
-
 setuptools.setup(
     name="ix-notifiers",
     version=f"{constants.VERSION}.{constants.BUILD}",
@@ -17,7 +14,7 @@ setuptools.setup(
     description="A python library for notifiers",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    license=package_license,
+    license='MIT License',
     url="https://gitlab.com/ix.ai/notifiers",
     packages=setuptools.find_packages(),
     classifiers=[
