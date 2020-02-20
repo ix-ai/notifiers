@@ -1,27 +1,75 @@
 image: python:latest
 
 stages:
+  - lint
+  - build
   - test
   - deploy
 
-before_script:
-  - sh -c ./build.sh
-  - pip3 install twine
-  - python3 setup.py sdist
+
+.tags-template:
+  tags:
+    - ix-ai
+
+.build-template:
+  extends:
+    - .tags-template
+  before_script:
+    - pip3 install twine
+
+test:
+  extends:
+    - .tags-template
+  image: python:latest
+  stage: lint
+  before_script:
+    - 'curl -so /dev/null -XPOST -H "Authorization: token ${GITHUB_STATUS_TOKEN}" https://api.github.com/repos/${GITHUB_OWNER}/${CI_PROJECT_NAME}/statuses/${CI_COMMIT_SHA} -d "{\"state\": \"pending\",\"target_url\": \"${CI_JOB_URL}\",\"context\": \"ci/gitlab/job/${CI_JOB_NAME}\",\"description\": \"${CI_JOB_NAME} started.\"}"'
+    - touch /tmp/failure
+  after_script:
+    - if [ -f /tmp/failure ]; then export BUILD_STATUS=failure; else export BUILD_STATUS=success; fi
+    - |
+      if [ -n "$GITHUB_STATUS_TOKEN" ] && [ -n "$GITHUB_OWNER" ] && [ "$GITHUB_STATUS_ENABLE" == "true" ]; then
+        curl -so /dev/null -XPOST -H "Authorization: token ${GITHUB_STATUS_TOKEN}" https://api.github.com/repos/${GITHUB_OWNER}/${CI_PROJECT_NAME}/statuses/${CI_COMMIT_SHA} -d "{\"state\": \"${BUILD_STATUS}\",\"target_url\": \"${CI_JOB_URL}\",\"context\": \"ci/gitlab/job/${CI_JOB_NAME}\",\"description\": \"${CI_JOB_NAME} ${BUILD_STATUS}.\"}"
+      fi
+  script:
+    - find . -name .git -type d -prune -o -name requirements.txt -print0 | xargs -0 -P $(nproc) -r -n1 pip install -r
+    - pip3 install pylint
+    - find . -name .git -type d -prune -o -type f -name \*.py -print0 | xargs -0 -P $(nproc) -r -n1 pylint --rcfile=${CI_PROJECT_DIR}/.pylintrc
+    - find . -name test.sh -maxdepth 1 -exec sh -c {} \;
+    - rm -f /tmp/failure
 
 deploy:testing:
-  stage: test
+  extends:
+    - .build-template
+  stage: build
   variables:
     TWINE_USERNAME: $TEST_PIPY_USERNAME
     TWINE_PASSWORD: $TEST_PIPY_PASSWORD
   script:
+    - find . -name build.sh -maxdepth 1 -exec sh -c {} \;
+    - python3 setup.py sdist
     - twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+  artifacts:
+    paths:
+      - dist/*
+    expire_in: 5 hours
+
+test:install:
+  extends:
+    - .tags-template
+  script:
+    - python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps ix-notifiers
 
 deploy:production:
+  extends:
+    - .tags-template
   stage: deploy
+  dependencies:
+    - deploy:testing
   variables:
     TWINE_USERNAME: $PIPY_USERNAME
     TWINE_PASSWORD: $PIPY_PASSWORD
   script:
     - twine upload dist/*
-  when: manual
+  only:
+    - master
