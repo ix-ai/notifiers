@@ -32,11 +32,19 @@ class IxNotifiers():
                 self.registered.update({notifier: instance.start(**settings)})
                 log.debug(f'Registered {notifier}')
 
-    def notify(self, **kwargs):
-        """ dispatches a notification to all the registered notifiers """
+    def notify(self, **kwargs) -> bool:
+        """
+        dispatches a notification to all the registered notifiers
+
+        param: kwargs get passed to the `send()` method of the notifier
+        return: True if at least one notification channel was successful, False otherwise
+        """
+        success = False
         for notifier in self.registered:
             log.debug(f'Sending notification to {notifier}')
-            self.registered[notifier].send(**kwargs)
+            if self.registered[notifier].send(**kwargs) is True:
+                success = True
+        return success
 
 
 class Notifier():
@@ -70,7 +78,7 @@ class Notifier():
         return True
 
     def redact(self, message: str) -> str:
-        """ based on the arguments, it replaces sensitive information in message with a redacted string """
+        """ based on self.params, it replaces sensitive information in message with a redacted string """
         for param, setting in self.params.items():
             if setting.get('redact') and self.settings.get(param):
                 message = message.replace(self.settings.get(param), 'xxxREDACTEDxxx')
