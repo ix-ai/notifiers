@@ -49,11 +49,13 @@ class GotifyNotifier(Notifier):
             'X-Gotify-Key': self.settings['token'],
             'user-agent': f'{__package__} {constants.VERSION}.{constants.BUILD}',
         }
+        # Allow per message override of content_type
         extras = {
             'client::display': {
-                'contentType': self.settings['content_type'],
+                'contentType': kwargs.get('content_type', self.settings['content_type']),
             }
         }
+
         req_json = {
             'extras': extras,
         }

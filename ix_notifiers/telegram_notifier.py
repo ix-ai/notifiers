@@ -39,10 +39,8 @@ class TelegramNotifier(Notifier):
     def send(self, **kwargs):
         """ sends a notification to telegram """
 
-        parse_mode = 'Markdown'
-
-        if kwargs.get('parse_mode'):
-            parse_mode = kwargs['parse_mode']
+        # Allow per message override of parse_mode
+        parse_mode = kwargs.get('parse_mode', self.settings['parse_mode'])
 
         retry = True
         success = True
