@@ -69,7 +69,7 @@ class TelegramNotifier(Notifier):
             except (telegram.error.BadRequest) as error:
                 exit_message = ''
                 if str(error) == 'Chat not found':
-                    exit_message = f'Check TELEGRAM_CHAT_ID - '
+                    exit_message = 'Check TELEGRAM_CHAT_ID - '
                 exit_message = self.redact(f'{exit_message}Skipping retries. The exception: {error}')
                 log.error(exit_message)
                 retry = False
