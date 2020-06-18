@@ -44,6 +44,13 @@ class TelegramNotifier(Notifier):
 
         retry = True
         success = True
+
+        # Telegram has a maximum message limit of 4096 characters
+        if len(kwargs['message']) > 4096:
+            success = False
+            retry = False
+            log.error(f"The Telegram message is too long ({len(kwargs['message'])} > 4096). Not sending.")
+
         while retry is True:
             try:
                 self.notifier.sendMessage(
