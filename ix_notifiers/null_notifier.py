@@ -19,4 +19,4 @@ class NullNotifier(Notifier):
     def __init__(self, **kwargs):
         self.settings = {}
         super().__init__(**kwargs)
-        log.debug(f"Initialized")
+        log.debug("Initialized")
