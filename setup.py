@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+""" setup.py for pypi """
+
 import setuptools
 from ix_notifiers import constants
 

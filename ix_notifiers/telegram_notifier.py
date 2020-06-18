@@ -44,6 +44,13 @@ class TelegramNotifier(Notifier):
 
         retry = True
         success = True
+
+        # Telegram has a maximum message limit of 4096 characters
+        if len(kwargs['message']) > 4096:
+            success = False
+            retry = False
+            log.error(f"The Telegram message is too long ({len(kwargs['message'])} > 4096). Not sending.")
+
         while retry is True:
             try:
                 self.notifier.sendMessage(
@@ -69,7 +76,7 @@ class TelegramNotifier(Notifier):
             except (telegram.error.BadRequest) as error:
                 exit_message = ''
                 if str(error) == 'Chat not found':
-                    exit_message = f'Check TELEGRAM_CHAT_ID - '
+                    exit_message = 'Check TELEGRAM_CHAT_ID - '
                 exit_message = self.redact(f'{exit_message}Skipping retries. The exception: {error}')
                 log.error(exit_message)
                 retry = False
