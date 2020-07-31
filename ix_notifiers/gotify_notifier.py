@@ -28,7 +28,10 @@ class GotifyNotifier(Notifier):
         },
         'content_type': {
             'default': 'text/markdown'
-        }
+        },
+        'default_priority': {
+            'mandatory': False,
+        },
     }
 
     def __init__(self, **kwargs):
@@ -59,12 +62,29 @@ class GotifyNotifier(Notifier):
         req_json = {
             'extras': extras,
         }
-        if kwargs.get('message'):
+        try:
             req_json.update({'message': kwargs['message']})
-        if kwargs.get('title'):
+        except KeyError:
+            pass
+
+        try:
             req_json.update({'title': kwargs['title']})
-        if kwargs.get('priority'):
+        except KeyError:
+            pass
+
+        try:
+            req_json.update({'priority': int(self.settings['default_priority'])})
+        except TypeError:
+            log.warning(f"Default priority not understood: {kwargs['default_priority']}")
+        except KeyError:
+            pass
+
+        try:
             req_json.update({'priority': int(kwargs['priority'])})
+        except TypeError:
+            log.warning(f"Notification priority not understood: {kwargs['priority']}")
+        except KeyError:
+            pass
 
         resp = None
         try:
