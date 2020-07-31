@@ -63,6 +63,8 @@ class GotifyNotifier(Notifier):
             req_json.update({'message': kwargs['message']})
         if kwargs.get('title'):
             req_json.update({'title': kwargs['title']})
+        if kwargs.get('priority'):
+            req_json.update({'priority': int(kwargs['priority'])})
 
         resp = None
         try:
