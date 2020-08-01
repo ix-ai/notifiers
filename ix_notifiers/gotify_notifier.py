@@ -75,16 +75,18 @@ class GotifyNotifier(Notifier):
         try:
             req_json.update({'priority': int(self.settings['default_priority'])})
         except TypeError:
-            log.warning(f"Default priority not understood: {kwargs['default_priority']}")
-        except KeyError:
-            pass
+            try:
+                log.warning(f"Default priority not understood: {kwargs['default_priority']}")
+            except KeyError:
+                pass
 
         try:
             req_json.update({'priority': int(kwargs['priority'])})
         except TypeError:
-            log.warning(f"Notification priority not understood: {kwargs['priority']}")
-        except KeyError:
-            pass
+            try:
+                log.warning(f"Notification priority not understood: {kwargs['priority']}")
+            except KeyError:
+                pass
 
         resp = None
         try:
