@@ -28,6 +28,9 @@ class TelegramNotifier(Notifier):
         'parse_mode': {
             'default': 'Markdown',
         },
+        'retry': {
+            'default': True,
+        }
     }
 
     def __init__(self, **kwargs):
@@ -67,8 +70,11 @@ class TelegramNotifier(Notifier):
                     retry_after = 0.5 + int(error.retry_after)
                 except AttributeError:
                     retry_after = 2
-                log.warning(f'Exception caught - retrying in {retry_after}s: {error}')
-                time.sleep(retry_after)
+                if self.settings['retry']:
+                    log.warning(f'Exception caught - retrying in {retry_after}s: {error}')
+                    time.sleep(retry_after)
+                else:
+                    log.error(f'Timeout. Retry is disabled. The exception: {error}')
             except (telegram.error.Unauthorized) as error:
                 log.error(self.redact(f'{error} - check TELEGRAM_TOKEN - skipping retries.'))
                 retry = False
