@@ -22,15 +22,19 @@ class GotifyNotifier(Notifier):
         'token': {
             'mandatory': True,
             'redact': True,
+            'type': 'string',
         },
         'url': {
             'mandatory': True,
+            'type': 'string',
         },
         'content_type': {
-            'default': 'text/markdown'
+            'default': 'text/markdown',
+            'type': 'string',
         },
         'default_priority': {
-            'mandatory': False,
+            'default': 0,
+            'type': 'integer',
         },
     }
 
@@ -75,10 +79,6 @@ class GotifyNotifier(Notifier):
         priority = 0
         try:
             priority = self.settings['default_priority']  # First look if there's a default priority
-        except KeyError:
-            pass
-
-        try:
             priority = kwargs['priority']  # Any default priority is overridden by a message priority
         except KeyError:
             pass

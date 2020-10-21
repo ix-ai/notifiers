@@ -21,16 +21,24 @@ class TelegramNotifier(Notifier):
         'token': {
             'mandatory': True,
             'redact': True,
+            'type': 'string',
         },
         'chat_id': {
             'mandatory': True,
+            'type': 'string',
         },
         'parse_mode': {
             'default': 'Markdown',
+            'type': 'string,'
         },
-        'retry': {
-            'default': True,
-        }
+        'max_retries': {
+            'default': 0,
+            'type': 'integer',
+        },
+        'always_succeed': {
+            'default': False,
+            'type': 'boolean',
+        },
     }
 
     def __init__(self, **kwargs):
@@ -47,6 +55,7 @@ class TelegramNotifier(Notifier):
 
         retry = True
         success = True
+        tries = 0
 
         # Telegram has a maximum message limit of 4096 characters
         if len(kwargs['message']) > 4096:
@@ -54,7 +63,10 @@ class TelegramNotifier(Notifier):
             retry = False
             log.error(f"The Telegram message is too long ({len(kwargs['message'])} > 4096). Not sending.")
 
-        while retry is True:
+        while retry is True and (
+            (self.settings['max_retries'] == 0) or (tries < self.settings['max_retries'])
+        ):
+            tries += 1
             try:
                 self.notifier.sendMessage(
                     chat_id=self.settings['chat_id'],
@@ -70,11 +82,12 @@ class TelegramNotifier(Notifier):
                     retry_after = 0.5 + int(error.retry_after)
                 except AttributeError:
                     retry_after = 2
-                if self.settings['retry']:
-                    log.warning(f'Exception caught - retrying in {retry_after}s: {error}')
-                    time.sleep(retry_after)
-                else:
-                    log.error(f'Timeout. Retry is disabled. The exception: {error}')
+                    if (self.settings['max_retries'] == 0) or (tries < self.settings['max_retries']):
+                        log.warning(f'Exception caught - retrying in {retry_after}s: {error}')
+                        time.sleep(retry_after)
+                    else:
+                        log.warning(f'Exception caught: {error}')
+                        success = False
             except (telegram.error.Unauthorized) as error:
                 log.error(self.redact(f'{error} - check TELEGRAM_TOKEN - skipping retries.'))
                 retry = False
@@ -91,4 +104,6 @@ class TelegramNotifier(Notifier):
                 log.error(self.redact(f"Failed to send message! Exception: {error}"))
                 retry = False
                 success = False
+        if self.settings['always_succeed']:
+            success = True
         return success
