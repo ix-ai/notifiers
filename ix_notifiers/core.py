@@ -60,6 +60,13 @@ class Notifier():
                 raise ValueError(f'{param} is mandatory')
             self.settings[param] = kwargs.get(f'{param}', self.params[param].get('default'))
 
+            if (setting['type'] == 'boolean') and not isinstance(self.settings[param], bool):
+                raise ValueError(f'`{param}` is not bool but {type(self.settings[param])}')
+            if (setting['type'] == 'integer') and not isinstance(self.settings[param], int):
+                raise ValueError(f'`{param}` is not int but {type(self.settings[param])}')
+            if (setting['type'] == 'string') and not isinstance(self.settings[param], str):
+                raise ValueError(f'`{param}` is not str but {type(self.settings[param])}')
+
     def key_to_title(self, key: str) -> str:
         """ converts a configuration key in form 'a_is_b' to a title in form 'A Is B ' """
         parsed = ""
