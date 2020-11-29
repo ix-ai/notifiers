@@ -26,7 +26,7 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     install_requires=[
-        'python-telegram-bot>=12.2',
-        'requests>=2.22',
+        'python-telegram-bot>=13.1',
+        'requests>=2.25.0',
     ],
 )
